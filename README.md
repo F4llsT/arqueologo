@@ -1,4 +1,4 @@
-# 🏺 Arqueólogo de Código (Local AI)
+# 🏺 Arqueólogo(Local AI)
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
 ![Ollama](https://img.shields.io/badge/AI-Ollama_Local-orange.svg)
@@ -44,3 +44,12 @@ O Arqueólogo resolve esse gargalo processando múltiplos arquivos 100% offline.
 1. **Baixe o modelo de IA recomendado (Otimizado para código):**
    ```bash
    ollama pull qwen2.5-coder:7b
+
+2. **Clone este repositório e entre na pasta:**
+   ```bash
+   git clone [https://github.com/SEU_USUARIO/arqueologo.git](https://github.com/SEU_USUARIO/arqueologo.git)
+   cd arqueologo
+
+3. **Execute a ferramenta apontando para o diretório alvo:**
+   ```bash
+   python3 arqueologo.py ./caminho_da_pasta
