@@ -1,0 +1,6 @@
+# Ignorar pastas de teste locais
+projeto_legado_teste/
+
+# Ignorar cache do Python
+__pycache__/
+*.pyc
