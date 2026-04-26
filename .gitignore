@@ -1,6 +1,12 @@
-# Ignorar pastas de teste locais
-projeto_legado_teste/
+# Dependências
+node_modules/
 
-# Ignorar cache do Python
-__pycache__/
-*.pyc
+# Compilação
+out/
+dist/
+*.vsix
+
+# Logs e arquivos do sistema
+npm-debug.log*
+.DS_Store
+.vscode-test/
