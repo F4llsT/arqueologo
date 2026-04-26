@@ -2,7 +2,7 @@
   "name": "arqueologo",
   "displayName": "Arqueologo",
   "description": "Documentação automática de código legado via IA local.",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "publisher": "fallst",
   "author": {
     "name": "Arthur Lopes Libonati",
@@ -21,20 +21,25 @@
     "commands": [
       {
         "command": "arqueologo.analisarCodigo",
-        "title": "Arqueólogo: Analisar Código"
+        "title": "🏺 Arqueólogo: Analisar Arquivo/Pasta"
+      },
+      {
+        "command": "arqueologo.analisarSelecao",
+        "title": "🏺 Arqueólogo: Analisar Seleção"
       }
     ],
     "menus": {
-      "editor/context": [
+      "explorer/context": [
         {
           "command": "arqueologo.analisarCodigo",
           "group": "navigation"
         }
       ],
-      "explorer/context": [
+      "editor/context": [
         {
-          "command": "arqueologo.analisarCodigo",
-          "group": "navigation"
+          "command": "arqueologo.analisarSelecao",
+          "when": "editorHasSelection",
+          "group": "1_modification"
         }
       ]
     }
