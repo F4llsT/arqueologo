@@ -2,7 +2,7 @@
   "name": "arqueologo",
   "displayName": "Arqueologo",
   "description": "Documentação automática de código legado via IA local.",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "publisher": "fallst",
   "author": {
     "name": "Arthur Lopes Libonati",
@@ -43,8 +43,9 @@
         }
       ]
     }
-  },
+  }, 
   "scripts": {
+    "setup": "python3 setup.py",
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
     "watch": "webpack --watch",

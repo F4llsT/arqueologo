@@ -1,55 +1,81 @@
-# 🏺 Arqueólogo(Local AI)
+# 🏺 Arqueólogo (Local AI - v1.1.0)
 
-![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
-![Ollama](https://img.shields.io/badge/AI-Ollama_Local-orange.svg)
-![Privacy](https://img.shields.io/badge/Privacy-100%25_Offline-success.svg)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
-
-O **Arqueólogo** é uma ferramenta de linha de comando (CLI) focada em **Engenharia Reversa, Análise e Documentação Automática** de sistemas legados. 
-
-Construído para ambientes corporativos de alta segurança (Air-gapped), ele utiliza Modelos de Linguagem Locais (LLMs) para analisar códigos confusos e gerar documentação técnica estruturada **sem que nenhuma linha de código proprietário vaze para a internet**.
+O **Arqueólogo** é uma ferramenta de **Engenharia Reversa, Auditoria de Segurança e Documentação Automática** para sistemas legados. Utiliza Modelos de Linguagem Locais (LLMs) para analisar códigos complexos e gerar relatórios técnicos **100% offline**, garantindo que nenhum dado sensível saia da sua infraestrutura.
 
 ---
 
-## 🎯 O Problema (Por que usar?)
+## 🎯 O Problema
+Empresas lidam com códigos legados obscuros e sem documentação. O uso de IAs na nuvem é frequentemente bloqueado por políticas de segurança e leis de privacidade (**LGPD/GDPR**). O Arqueólogo traz a inteligência para dentro da máquina do desenvolvedor, eliminando o risco de vazamento de dados.
 
-Bancos, seguradoras e grandes corporações lidam diariamente com bases de código antigas e sem documentação. No entanto, desenvolvedores são frequentemente proibidos de colar essas funções em IAs na nuvem (como ChatGPT ou Claude) devido a rigorosas **políticas de segurança, NDAs e leis de privacidade (LGPD/GDPR)**.
-
-## 💡 A Solução
-
-O Arqueólogo resolve esse gargalo processando múltiplos arquivos 100% offline. Ele atua como um revisor sênior que:
-1. Varre diretórios de código legado.
-2. Isola as funções e envia para um modelo de IA rodando na própria máquina do desenvolvedor.
-3. Gera relatórios individuais apontando propósito, parâmetros, *code smells* e sugestões de refatoração para *Clean Code*.
+## 💡 A Solução: Versão 1.1.0
+Mais do que uma simples documentação, a versão atual atua como um **Especialista em Segurança (AppSec)** e um **Arquiteto de Software**, entregando:
+1. **Auditoria SAST:** Identificação de vulnerabilidades (Hardcoded Secrets, SQL Injections, falhas OWASP).
+2. **Análise Cirúrgica:** Análise instantânea de trechos selecionados para respostas rápidas.
+3. **Suporte Poliglota:** Entendimento de múltiplas linguagens (JS, TS, Python, Java, PHP, C#, Go, etc).
 
 ---
 
 ## ⚙️ Funcionalidades Principais
-
-* **🔒 Zero-Data-Leak:** Integração exclusiva com a API local do Ollama. Seus dados nunca saem do seu hardware.
-* **📦 Zero Dependências:** Escrito em Python puro utilizando apenas bibliotecas nativas (`os`, `sys`, `json`, `urllib`). Não requer ambientes virtuais complexos ou `pip install`.
-* **🤖 Prompt Engineering Embutido:** A ferramenta já encapsula um prompt mestre testado e validado, garantindo que a saída da IA seja sempre padronizada e profissional.
-* **🔄 Processamento em Lote (Batch):** Capacidade de percorrer pastas de forma recursiva, isolando erros de arquivos individuais para não interromper a esteira de análise.
+* **🔒 Local First:** Integração via API local do Ollama. Privacidade total.
+* **🛡️ Auditoria de Segurança:** Seção dedicada a apontar riscos críticos, médios e baixos.
+* **🖱️ Análise por Seleção:** Clique com o botão direito em um trecho de código e receba a análise na hora.
+* **📂 Processamento em Lote:** Varredura recursiva de pastas inteiras.
+* **⚡ Cache Inteligente:** Utiliza hashes MD5 para evitar reprocessamento de arquivos inalterados.
 
 ---
 
-## 🚀 Como Começar (Quickstart)
+## 🚀 Instalação e Setup Automatizado
 
 ### Pré-requisitos
-* Python 3.x instalado.
-* [Ollama](https://ollama.com/) instalado e rodando em segundo plano.
+* Python 3.x e Node.js instalados.
 
-### Instalação e Execução
-
-1. **Baixe o modelo de IA recomendado (Otimizado para código):**
+### Passo a Passo
+1. **Clone o repositório:**
    ```bash
-   ollama pull qwen2.5-coder:7b
-
-2. **Clone este repositório e entre na pasta:**
-   ```bash
-   git clone [https://github.com/SEU_USUARIO/arqueologo.git](https://github.com/SEU_USUARIO/arqueologo.git)
+   git clone https://github.com/SEU_USUARIO/arqueologo.git
    cd arqueologo
+   ```
 
-3. **Execute a ferramenta apontando para o diretório alvo:**
+2. **Rode o Setup Automatizado:**
+   Este comando verifica o sistema, instala o Ollama (Linux) e baixa o modelo `qwen2.5-coder:7b` automaticamente.
    ```bash
-   python3 arqueologo.py ./caminho_da_pasta
+   npm run setup
+   ```
+
+---
+
+## 🖱️ Como Usar no VS Code
+
+### 1. Documentação de Arquivo ou Pasta
+Na barra lateral (Explorer), clique com o botão direito em um arquivo ou pasta e selecione:
+> **🏺 Arqueólogo: Analisar Arquivo/Pasta**
+> *O relatório será salvo em `documentacao_gerada/`.*
+
+### 2. Análise de Trecho Específico
+Selecione um bloco de código no editor, clique com o botão direito e escolha:
+> **🏺 Arqueólogo: Analisar Seleção**
+> *Um relatório temporário abrirá ao lado para consulta imediata sem poluir o projeto.*
+
+---
+
+## 📊 Estrutura do Relatório Gerado
+* **Propósito Geral:** Explicação em linguagem humana.
+* **Clean Code:** Identificação de problemas de lógica e "code smells".
+* **Auditoria de Segurança (SAST):** Riscos de vulnerabilidades e possíveis impactos baseados na OWASP.
+* **Sugestão de Refatoração:** Código moderno, tipado e seguro.
+
+---
+
+## 🛠️ Tecnologias
+* **Motor de IA:** [Ollama](https://ollama.com/) local.
+* **Modelo Sugerido:** `qwen2.5-coder:7b`.
+* **Backend:** Python 3 (Bibliotecas nativas).
+* **Frontend:** VS Code Extension API (TypeScript).
+
+---
+
+## 📄 Licença
+Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+
+---
+**Desenvolvido para desenterrar o futuro em códigos do passado.**
