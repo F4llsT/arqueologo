@@ -10,7 +10,24 @@ MODELO_IA = "qwen2.5-coder:7b"
 OLLAMA_URL = "http://localhost:11434/api/generate"
 CACHE_FILE = os.path.join("documentacao_gerada", "arqueologo_cache.json")
 
-PROMPT_INTERNO = """Você é um Arqueólogo de Código Especialista em Engenharia Reversa e Clean Code. 
+# Dicionário de Inteligência: Mapeia a extensão do arquivo para a linguagem real
+MAPA_LINGUAGENS = {
+    '.py': 'Python',
+    '.js': 'JavaScript',
+    '.ts': 'TypeScript',
+    '.java': 'Java',
+    '.cs': 'C#',
+    '.cpp': 'C++',
+    '.c': 'C',
+    '.go': 'Go',
+    '.rb': 'Ruby',
+    '.php': 'PHP',
+    '.html': 'HTML',
+    '.css': 'CSS'
+}
+
+# O Prompt agora possui a variável [Linguagem]
+PROMPT_INTERNO = """Você é um Arqueólogo de Código Especialista Sênior em [Linguagem] e focado em Clean Code. 
 Analise o código a seguir e gere uma documentação técnica impecável. 
 Retorne EXCLUSIVAMENTE o conteúdo em Markdown, sem conversas paralelas.
 
@@ -23,16 +40,15 @@ Retorne EXCLUSIVAMENTE o conteúdo em Markdown, sem conversas paralelas.
 * [nome_da_funcao](): [Explicação da responsabilidade]
 
 ## 🚩 Problemas Identificados
-[Liste code smells, variáveis mágicas, falta de tipagem ou lógica confusa]
+[Liste code smells, variáveis mágicas, falta de tipagem ou lógica confusa específicos de [Linguagem]]
 
 ## 🛠️ Sugestão de Refatoração (Clean Code)
-```python
-# Versão refatorada e limpa do código aqui
+```[extensao_markdown]
+# Versão refatorada e limpa do código aqui, seguindo as melhores práticas de [Linguagem]
 ```
 """
 
 def get_file_hash(file_path):
-    """Gera um hash MD5 baseado no conteúdo exato do arquivo."""
     hasher = hashlib.md5()
     with open(file_path, 'rb') as f:
         buf = f.read()
@@ -40,7 +56,6 @@ def get_file_hash(file_path):
     return hasher.hexdigest()
 
 def carregar_cache():
-    """Lê o arquivo de cache JSON."""
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, 'r', encoding='utf-8') as f:
@@ -50,34 +65,42 @@ def carregar_cache():
     return {}
 
 def salvar_cache(cache):
-    """Salva o dicionário de cache no arquivo JSON."""
     os.makedirs("documentacao_gerada", exist_ok=True)
     with open(CACHE_FILE, 'w', encoding='utf-8') as f:
         json.dump(cache, f, indent=4)
 
 def process_file(file_path):
-    """Lê o arquivo, verifica o cache, processa na IA e salva o relatório."""
     try:
-        if not file_path.endswith('.py'):
+        # 1. IDENTIFICAÇÃO DINÂMICA DE LINGUAGEM
+        extensao = os.path.splitext(file_path)[1].lower()
+        
+        # Se for um arquivo que não conhecemos (ex: .txt, .md), ignoramos
+        if extensao not in MAPA_LINGUAGENS:
             return
 
+        linguagem_nome = MAPA_LINGUAGENS[extensao]
+        ext_markdown = extensao.replace('.', '') # Ex: .py vira py para o bloco de código
+        
         nome_arquivo = os.path.basename(file_path)
         out_path = os.path.join("documentacao_gerada", f"{nome_arquivo}_doc.md")
 
-        # 1. LÓGICA DE CACHE (Alta Performance)
+        # 2. SISTEMA DE CACHE
         current_hash = get_file_hash(file_path)
         cache = carregar_cache()
 
-        # Verifica se o arquivo não mudou e se o relatório já existe
         if cache.get(file_path) == current_hash and os.path.exists(out_path):
-            print(f"⚡ [CACHE HIT] O arquivo '{nome_arquivo}' não foi modificado. Carregando instantaneamente...")
-            return  # Retorna imediatamente sem chamar a IA!
+            print(f"⚡ [CACHE HIT] '{nome_arquivo}' ({linguagem_nome}) carregado instantaneamente.")
+            return
 
-        # 2. SE NÃO TEM CACHE, LÊ O ARQUIVO E CHAMA A IA
+        # 3. LEITURA E INJEÇÃO DE CONTEXTO NA IA
         with open(file_path, 'r', encoding='utf-8') as file:
             code = file.read()
 
-        prompt_final = PROMPT_INTERNO.replace('[Nome do Arquivo]', nome_arquivo) + "\n\nCÓDIGO FONTE:\n" + code
+        # Substitui as variáveis no prompt para focar na linguagem exata
+        prompt_final = PROMPT_INTERNO.replace('[Nome do Arquivo]', nome_arquivo)
+        prompt_final = prompt_final.replace('[Linguagem]', linguagem_nome)
+        prompt_final = prompt_final.replace('[extensao_markdown]', ext_markdown)
+        prompt_final += "\n\nCÓDIGO FONTE:\n" + code
 
         payload = {
             "model": MODELO_IA,
@@ -88,19 +111,16 @@ def process_file(file_path):
         data = json.dumps(payload).encode('utf-8')
         req = Request(OLLAMA_URL, data=data, headers={'Content-Type': 'application/json'})
         
-        print(f"🔍 Escavando: {nome_arquivo}...")
+        print(f"🔍 Escavando: {nome_arquivo} (Especialidade: {linguagem_nome})...")
         
-        # Mantendo timeout=None para a IA ter o tempo que precisar
         with urlopen(req, timeout=None) as response:
             result = json.loads(response.read().decode('utf-8'))
             documentacao = result.get('response', '')
 
-        # Garante a pasta de saída e salva o documento
         os.makedirs("documentacao_gerada", exist_ok=True)
         with open(out_path, 'w', encoding='utf-8') as f:
             f.write(documentacao)
         
-        # 3. ATUALIZA O CACHE PARA AS PRÓXIMAS EXECUÇÕES
         cache[file_path] = current_hash
         salvar_cache(cache)
         
@@ -122,14 +142,16 @@ def main():
         print(f"❌ Erro: '{target}' não encontrado.")
         sys.exit(1)
 
-    print("🚀 [ARQUEÓLOGO] Iniciando análise...")
+    print("🚀 [ARQUEÓLOGO MULTILINGUAGEM] Iniciando análise...")
 
     if os.path.isfile(target):
         process_file(target)
     elif os.path.isdir(target):
         for root, _, files in os.walk(target):
             for file_name in files:
-                if file_name.endswith('.py') and file_name != 'arqueologo.py':
+                # Agora analisamos qualquer arquivo que esteja no nosso dicionário!
+                extensao = os.path.splitext(file_name)[1].lower()
+                if extensao in MAPA_LINGUAGENS and file_name != 'arqueologo.py':
                     process_file(os.path.join(root, file_name))
 
     print("🏁 [CONCLUÍDO]")

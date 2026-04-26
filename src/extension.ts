@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os'; // NOVO: Biblioteca para detectar o Sistema Operacional
 
 export function activate(context: vscode.ExtensionContext) {
     
@@ -34,7 +35,12 @@ export function activate(context: vscode.ExtensionContext) {
         }, (progress) => {
             return new Promise<void>((resolve) => {
                 
-                const command = `python3 "${scriptPath}" "${targetPath}"`;
+                // 🚀 LÓGICA MULTIPLATAFORMA (Windows vs Linux/Mac)
+                // Se for win32 (Windows), usa 'python', senão usa 'python3'
+                const pythonCmd = os.platform() === 'win32' ? 'python' : 'python3';
+                
+                // Monta o comando dinamicamente
+                const command = `${pythonCmd} "${scriptPath}" "${targetPath}"`;
                 
                 exec(command, { cwd: workspaceRoot }, (error: Error | null, stdout: string, stderr: string) => {
                     if (error) {
@@ -57,7 +63,8 @@ export function activate(context: vscode.ExtensionContext) {
                         });
                         vscode.window.showInformationMessage(`✅ Relatório de "${targetName}" pronto!`);
                     } else {
-                        vscode.window.showWarningMessage('Análise concluída, mas o relatório não foi gerado.');
+                        // Exibe o que o Python retornou caso o relatório não apareça
+                        vscode.window.showWarningMessage(`O relatório não foi gerado. Resposta da IA: ${stdout}`);
                     }
                     resolve();
                 });
