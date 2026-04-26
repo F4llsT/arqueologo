@@ -60,17 +60,17 @@ export function activate(context: vscode.ExtensionContext) {
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
         const scriptPath = path.join(context.extensionPath, 'arqueologo.py');
 
-        // Pega a extensão do arquivo atual para o Python saber qual é a linguagem!
+        // Obtém a extensão do arquivo atual para o Python identificar a linguagem
         const currentFilePath = editor.document.uri.fsPath;
         const extensao = path.extname(currentFilePath) || '.txt';
 
-        // Cria uma pasta temporária invisível
+        // Cria uma pasta temporária para o trecho selecionado
         const tempDir = path.join(workspaceRoot, 'documentacao_gerada', '.temp');
         if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir, { recursive: true });
         }
 
-        // Salva o texto selecionado num arquivo "fantasma"
+        // Salva o texto selecionado num ficheiro temporário
         const tempFileName = `selecao_temporaria${extensao}`;
         const tempFilePath = path.join(tempDir, tempFileName);
         fs.writeFileSync(tempFilePath, text, 'utf8');
@@ -82,7 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // =========================================================================
-// FUNÇÃO AUXILIAR: Executa o Python e abre o relatório (Evita código duplicado)
+// FUNÇÃO AUXILIAR: Executa o Python e abre o relatório
 // =========================================================================
 function executarPython(scriptPath: string, targetPath: string, workspaceRoot: string, targetName: string) {
     vscode.window.withProgress({
@@ -96,17 +96,16 @@ function executarPython(scriptPath: string, targetPath: string, workspaceRoot: s
             
             exec(command, { cwd: workspaceRoot }, (error: Error | null, stdout: string, stderr: string) => {
                 if (error) {
-                    vscode.window.showErrorMessage(`❌ Erro: ${stderr || error.message}`);
+                    vscode.window.showErrorMessage(`❌ Erro de Execução: ${stderr || error.message}`);
                     resolve(); 
                     return;
                 }
 
+                // Nome do relatório gerado pelo script Python
                 const reportName = `${targetName}_doc.md`;
-                // Se for a seleção, ela salva dentro da pasta .temp. Senão, na raiz da documentacao_gerada.
-                const isTemp = targetName.includes('selecao_temporaria');
-                const docPath = isTemp 
-                    ? path.join(workspaceRoot, 'documentacao_gerada', '.temp', reportName)
-                    : path.join(workspaceRoot, 'documentacao_gerada', reportName);
+                
+                // O Python salva o relatório na raiz da pasta 'documentacao_gerada'
+                const docPath = path.join(workspaceRoot, 'documentacao_gerada', reportName);
 
                 if (fs.existsSync(docPath)) {
                     const openPath = vscode.Uri.file(docPath);
@@ -116,9 +115,13 @@ function executarPython(scriptPath: string, targetPath: string, workspaceRoot: s
                             preserveFocus: false
                         });
                     });
-                    if(!isTemp) vscode.window.showInformationMessage(`✅ Relatório pronto!`);
+                    
+                    // Feedback visual de sucesso apenas para ficheiros completos
+                    if (!targetName.includes('selecao_temporaria')) {
+                        vscode.window.showInformationMessage(`✅ Relatório de "${targetName}" pronto!`);
+                    }
                 } else {
-                    vscode.window.showWarningMessage(`O relatório não foi gerado. Resposta: ${stdout}`);
+                    vscode.window.showWarningMessage(`O relatório não foi gerado. Resposta do motor: ${stdout}`);
                 }
                 resolve();
             });
