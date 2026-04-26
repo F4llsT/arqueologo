@@ -7,15 +7,14 @@ export function activate(context: vscode.ExtensionContext) {
     
     let disposable = vscode.commands.registerCommand('arqueologo.analisarCodigo', (uri: vscode.Uri) => {
         
+        // 1. Identifica o arquivo ou pasta clicada
         let targetPath = uri ? uri.fsPath : '';
         if (!targetPath) {
             vscode.window.showErrorMessage('Por favor, clique com o botão direito em um arquivo.');
             return;
         }
 
-        const isDirectory = fs.statSync(targetPath).isDirectory();
-        const targetDir = isDirectory ? targetPath : path.dirname(targetPath);
-
+        // 2. Verifica se há um workspace aberto
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders) {
             vscode.window.showErrorMessage('Abra a pasta do seu projeto no VS Code primeiro.');
@@ -23,13 +22,17 @@ export function activate(context: vscode.ExtensionContext) {
         }
         
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
-        const scriptPath = path.join(workspaceRoot, 'arqueologo.py');
+
+        // 3. PASSO MESTRE: Localiza o script Python DENTRO da pasta da extensão
+        // Isso elimina a necessidade de copiar o arqueologo.py para a pasta do usuário
+        const scriptPath = path.join(context.extensionPath, 'arqueologo.py');
 
         if (!fs.existsSync(scriptPath)) {
-            vscode.window.showErrorMessage('O arquivo arqueologo.py não foi encontrado na raiz do projeto.');
+            vscode.window.showErrorMessage('Erro crítico: O motor "arqueologo.py" não foi encontrado dentro da extensão.');
             return;
         }
 
+        // 4. Inicia a barra de progresso
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: "Arqueólogo: Analisando código com IA Local...",
@@ -37,9 +40,10 @@ export function activate(context: vscode.ExtensionContext) {
         }, (progress) => {
             return new Promise<void>((resolve) => {
                 
-                const command = `python3 "${scriptPath}" "${targetDir}"`;
+                // Monta o comando com aspas duplas para suportar caminhos com espaços no Linux
+                const command = `python3 "${scriptPath}" "${targetPath}"`;
                 
-                // CORREÇÃO: Adicionamos os tipos explícitos (Error | null, string, string) para agradar o TypeScript
+                // Executa o script Python
                 exec(command, { cwd: workspaceRoot }, (error: Error | null, stdout: string, stderr: string) => {
                     if (error) {
                         vscode.window.showErrorMessage(`Erro na IA: ${error.message}`);
@@ -48,16 +52,26 @@ export function activate(context: vscode.ExtensionContext) {
                         return;
                     }
 
-                    const fileName = path.basename(targetDir);
-                    const docPath = path.join(workspaceRoot, 'documentacao_gerada', `${fileName}_documentacao.md`);
+                    // 5. LÓGICA DE ABERTURA AUTOMÁTICA
+                    // O script Python gera o arquivo com o nome: [nome_do_arquivo]_doc.md
+                    const fileName = path.basename(targetPath);
+                    const reportName = `${fileName}_doc.md`;
+                    const docPath = path.join(workspaceRoot, 'documentacao_gerada', reportName);
 
-                    if(fs.existsSync(docPath)) {
+                    // Verifica se o relatório foi criado e abre ele ao lado (Beside)
+                    if (fs.existsSync(docPath)) {
                         const openPath = vscode.Uri.file(docPath);
                         vscode.workspace.openTextDocument(openPath).then(doc => {
-                            vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
+                            vscode.window.showTextDocument(doc, {
+                                viewColumn: vscode.ViewColumn.Beside,
+                                preserveFocus: false
+                            });
                         });
+                        vscode.window.showInformationMessage(`✅ Arqueólogo: Análise de "${fileName}" concluída!`);
+                    } else {
+                        vscode.window.showWarningMessage('Análise concluída, mas o arquivo de relatório não foi encontrado.');
                     }
-                    vscode.window.showInformationMessage('✅ Análise do Arqueólogo concluída! Verifique a pasta documentacao_gerada.');
+                    
                     resolve();
                 });
             });
