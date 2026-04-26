@@ -53,7 +53,7 @@ def process_file(file_path):
         
         print(f"🔍 Escavando: {nome_arquivo}...")
         
-        with urlopen(req, timeout=120) as response:
+        with urlopen(req, timeout=None) as response:
             result = json.loads(response.read().decode('utf-8'))
             documentacao = result.get('response', '')
 
